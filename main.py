@@ -22,14 +22,14 @@ class PRHandler(tornado.web.RequestHandler):
         payload = json.loads(self.request.body)
 
         actions = [key for key in KEYS if "pullrequest_%s" % key in payload]
-
+        logging.debug("Action that will be performed: %s" % ",".join(actions))
         if not actions:
             logging.warn("Unexpected payload: %s" % payload)
         else:
             for action in actions:
-                logging.debug("Using handle_%s" % key)
-                handler = eval("handle_%s" % key)
-                handler(payload["pullrequest_%s" % key])
+                logging.debug("Using handle_%s" % action)
+                handler = eval("handle_%s" % action)
+                handler(payload["pullrequest_%s" % action])
 
 
 application = tornado.web.Application([
