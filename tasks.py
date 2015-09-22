@@ -1,23 +1,23 @@
 import logging
 
 
-def handle_approve():
+def handle_approve(data):
     pass
 
 
-def handle_unapprove():
+def handle_unapprove(data):
     pass
 
 
-def handle_comment_created():
+def handle_comment_created(data):
     pass
 
 
-def handle_comment_deleted():
+def handle_comment_deleted(data):
     pass
 
 
-def handle_comment_updated():
+def handle_comment_updated(data):
     pass
 
 
@@ -33,13 +33,14 @@ def handle_created(data):
                    source["repository"]["full_name"]))
 
 
-def handle_updated():
+def handle_updated(data):
+    # this is gonna be fun: figure out whether code changed or not...
     pass
 
 
-def handle_declined():
+def handle_declined(data):
     pass
 
 
-def handle_merged():
+def handle_merged(data):
     pass
