@@ -19,7 +19,8 @@ class PRHandler(tornado.web.RequestHandler):
 
     def post(self):
         logging.debug("payload = %s" % self.request.body)
-        payload = json.loads(self.request.body)
+        payload = json.loads(self.request.body.decode('utf8'))
+        event = self.request.headers.get("X-Event-Key", None)
 
         actions = [key for key in KEYS if "pullrequest_%s" % key in payload]
         logging.debug("Action that will be performed: %s" % ",".join(actions))
@@ -28,7 +29,7 @@ class PRHandler(tornado.web.RequestHandler):
         else:
             for action in actions:
                 logging.debug("Using handle_%s" % action)
-                handler = eval("handle_%s" % action)
+                handler = eval(event.replace(':', '_'))
                 handler(payload["pullrequest_%s" % action])
 
 
