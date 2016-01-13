@@ -24,7 +24,7 @@ class PRHandler(tornado.web.RequestHandler):
 
         if hasattr(tasks, event):
             action = eval("tasks.{}".format(event))
-            action(payload)
+            tornado.ioloop.IOLoop.current().spawn_callback(action, payload)
         else:
             logging.warn("No task for {}".format(event))
             raise tornado.web.HTTPError(400)
