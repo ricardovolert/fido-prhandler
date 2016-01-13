@@ -7,16 +7,13 @@ import requests
 import shutil
 import hglib
 from unidiff import PatchSet
-import ConfigParser
 
 IRC_TARGET = "irc://chat.freenode.net/#yt"
 HOME_DIR = "/home/fido/fido"
 REPOS_DIR = "/tmp/jenkins_doc"
 
-CONFIG = ConfigParser.ConfigParser()
-CONFIG.read('yt-fido.cfg')
-JENKINS_TOKEN = CONFIG.get('jenkins', 'token')
-JENKINS_URL = 'https://tests.yt-project.org'
+JENKINS_TOKEN = os.environ.get("JENKINS_TOKEN", None)
+JENKINS_URL = os.environ.get("JENKINS_URL", "https://tests.yt-project.org")
 debug = False
 
 
