@@ -3,11 +3,7 @@ import tornado.ioloop
 import tornado.web
 import json
 import logging
-from tasks import *
-
-
-KEYS = ["approve", "comment_created", "comment_deleted", "comment_updated",
-        "created", "updated", "unapprove", "declined", "merged"]
+import tasks
 
 
 class PRHandler(tornado.web.RequestHandler):
@@ -21,16 +17,17 @@ class PRHandler(tornado.web.RequestHandler):
         logging.debug("payload = %s" % self.request.body)
         payload = json.loads(self.request.body.decode('utf8'))
         event = self.request.headers.get("X-Event-Key", None)
+        if event is None:
+            logging.warn("No event key in request")
+            raise tornado.web.HTTPError(400)
+        event = event.replace(':', '_')
 
-        actions = [key for key in KEYS if "pullrequest_%s" % key in payload]
-        logging.debug("Action that will be performed: %s" % ",".join(actions))
-        if not actions:
-            logging.warn("Unexpected payload: %s" % payload)
+        if hasattr(tasks, event):
+            action = eval("tasks.{}".format(event))
+            action(payload)
         else:
-            for action in actions:
-                logging.debug("Using handle_%s" % action)
-                handler = eval(event.replace(':', '_'))
-                handler(payload["pullrequest_%s" % action])
+            logging.warn("No task for {}".format(event))
+            raise tornado.web.HTTPError(400)
 
 
 application = tornado.web.Application([
