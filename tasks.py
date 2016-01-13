@@ -42,8 +42,7 @@ def _touches_docs(source_repo, rev):
     anc = repo.log(revrange="max({0}::{1}) and not {0}".format(tip, rev))
     if len(anc) > 0:
         repo.update(rev=rev)
-        diff = repo.diff(revs="%s..%s" % (tip, rev),
-                         git=True, unified=4).split('\n')
+        diff = repo.diff(revs=[tip, rev], git=True, unified=4).split('\n')
     else:
         try:
             repo.merge(rev=rev, cb=hglib.merge.handlers.noninteractive,
