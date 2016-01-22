@@ -108,4 +108,9 @@ def pullrequest_updated(data):
 
 
 def pullrequest_fullfilled(data):
-    pass
+    payload = {'Submit': 'Build', 'json': json.dumps({})}
+    jobs = ["yt_dev_conda"]
+    for job in jobs:
+        r = requests.post(_jenkins_hook(job), data=payload)
+        if r.status_code != 200:
+            logging.warn("Failed to submit {}".format(job))
