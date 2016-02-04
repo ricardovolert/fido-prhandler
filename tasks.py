@@ -67,6 +67,8 @@ def _jenkins_hook(job):
 
 
 def pullrequest_created(data):
+    if "WIP" in data["pullrequest"]["title"]:
+        return
     dest = data["pullrequest"]["destination"]
     logging.debug("destination: hash=%s branch=%s repo=%s" %
                   (dest["commit"]["hash"], dest["branch"]["name"],
