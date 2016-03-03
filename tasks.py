@@ -11,6 +11,7 @@ from unidiff import PatchSet
 IRC_TARGET = "irc://chat.freenode.net/#yt"
 HOME_DIR = "/home/fido/fido"
 REPOS_DIR = "/tmp/jenkins_doc"
+SKIP_TEST_KEY = ("wip", "notest")
 
 JENKINS_TOKEN = os.environ.get("JENKINS_TOKEN", None)
 JENKINS_URL = os.environ.get("JENKINS_URL", "https://tests.yt-project.org")
@@ -67,7 +68,7 @@ def _jenkins_hook(job):
 
 
 def pullrequest_created(data):
-    if "WIP" in data["pullrequest"]["title"]:
+    if any(x in data["pullrequest"]["title"].lower() for x in SKIP_TEST_KEY):
         return
     dest = data["pullrequest"]["destination"]
     logging.debug("destination: hash=%s branch=%s repo=%s" %
