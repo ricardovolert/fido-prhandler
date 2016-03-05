@@ -110,9 +110,9 @@ def pullrequest_updated(data):
     pullrequest_created(data)
 
 
-def pullrequest_fullfilled(data):
+def pullrequest_fulfilled(data):
     payload = {'Submit': 'Build', 'json': json.dumps({})}
-    jobs = ["yt_dev_conda"]
+    jobs = ["conda_ytdev"]
     for job in jobs:
         r = requests.post(_jenkins_hook(job), data=payload)
         if r.status_code != 200:
