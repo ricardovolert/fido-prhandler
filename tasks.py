@@ -95,7 +95,7 @@ def pullrequest_created(data):
         'Submit': 'Build'
     }
 
-    jobs = ["yt_testsuite_dev", "yt_testsuite"]
+    jobs = ["yt_testsuite"]
     if _touches_docs(source["repository"]["full_name"],
                      source["commit"]["hash"]):
         jobs.append("yt_docs")
