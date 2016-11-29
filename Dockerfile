@@ -5,7 +5,7 @@ ENV JENKINS_TOKEN=foo JENKINS_URL="https://tests.yt-project.org"
 
 RUN apt-get update -qy && \
   apt-get install -qy python-hglib python-tornado python-requests \
-    python-setuptools curl unzip && \
+    python-setuptools python-requests-oauthlib curl unzip && \
   cd /tmp && \
   curl -OL https://github.com/matiasb/python-unidiff/archive/master.zip && \
   unzip master.zip && \

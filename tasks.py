@@ -7,6 +7,7 @@ import requests
 import shutil
 import hglib
 from unidiff import PatchSet
+from requests_oauthlib import OAuth1Session
 
 IRC_TARGET = "irc://chat.freenode.net/#yt"
 HOME_DIR = "/home/fido/fido"
@@ -67,7 +68,61 @@ def _jenkins_hook(job):
     return "{}/job/{}/build?token={}".format(JENKINS_URL, job, JENKINS_TOKEN)
 
 
-def pullrequest_created(data):
+def _comment_on_pullrequest(user, repo, prno, message, append=True):
+    """
+    Comment as fido on a pull request
+
+    Parameters
+    ----------
+    user : str
+        Bitbucket username
+    repo : str
+        Bitbucket repository name
+    prno : int
+        Pullrequest id
+    message : str
+        Comment to be added
+    append : bool (optional)
+        If True and at least one comment by fido already exists, it will append
+        message to the last comment.
+    """
+    bb = OAuth1Session(
+        os.environ.get("OAUTH_KEY"),
+        client_secret=os.environ.get("OAUTH_SECRET"),
+        resource_owner_key=os.environ.get("OAUTH_TOKEN"),
+        resource_owner_secret=os.environ.get("OAUTH_TOKEN_SECRET"))
+    api_url = 'https://api.bitbucket.org'
+    if append:
+        comments = api_url + (
+            '/1.0/repositories/{username}/{repo_slug}/pullrequests'
+            '/{pull_request_id}/comments'
+        )
+        url = comments.format(username=user, repo_slug=repo,
+                              pull_request_id=prno)
+        resp = bb.get(url)
+        comments = json.loads(resp.content.decode('utf8'))
+        fido_comments = [
+            _ for _ in comments
+            if _['author_info']['username'] == 'yt-fido' and not _['deleted']
+        ]
+        if fido_comments:
+            current_content = fido_comments[-1]['content']
+            if not current_content.startswith('*'):
+                current_content = '* ' + current_content
+            if not current_content.endswith('\n'):
+                current_content += '\n'
+            if not message.startswith('*'):
+                message = '* ' + message
+            current_content += message
+            bb.put(url + '/%i' % fido_comments[-1]['comment_id'],
+                   data={'content': current_content})
+        else:
+            bb.post(url, data={'content': message})
+    else:
+        bb.post(url, data={'content': message})
+
+
+def _run_tests_yt(data):
     if any(x in data["pullrequest"]["title"].lower() for x in SKIP_TEST_KEY):
         return
     dest = data["pullrequest"]["destination"]
@@ -104,6 +159,16 @@ def pullrequest_created(data):
         r = requests.post(_jenkins_hook(job), data=payload)
         if r.status_code != 200:
             logging.warn("Failed to submit {}".format(job))
+
+
+def pullrequest_created(data):
+    if data['repository']['full_name'] == 'yt_analysis/yt':
+        _run_tests_yt(data)
+    else:
+        user, repo = data['repository']['full_name'].split('/')
+        prno = data['pullrequest']['id']
+        message = 'Hi there!'
+        _comment_on_pullrequest(user, repo, prno, message)
 
 
 def pullrequest_updated(data):
