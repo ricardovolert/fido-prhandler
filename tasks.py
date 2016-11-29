@@ -18,6 +18,38 @@ JENKINS_TOKEN = os.environ.get("JENKINS_TOKEN", None)
 JENKINS_URL = os.environ.get("JENKINS_URL", "https://tests.yt-project.org")
 debug = False
 
+CONTRIBUTORS = None
+
+
+def _new_contributor(uuid):
+    global CONTRIBUTORS
+    if CONTRIBUTORS is None:
+        api_url = 'https://api.bitbucket.org'
+        prs = api_url + (
+            '/2.0/repositories/{username}/{repo_slug}/pullrequests'
+        )
+
+        bb = OAuth1Session(
+            os.environ.get("OAUTH_KEY"),
+            client_secret=os.environ.get("OAUTH_SECRET"),
+            resource_owner_key=os.environ.get("OAUTH_TOKEN"),
+            resource_owner_secret=os.environ.get("OAUTH_TOKEN_SECRET"))
+
+        def get_users(url, contributors=set()):
+            logging.debug('Getting contributors... make take a while.')
+            data = bb.get(url, params={'state': ''}).json()
+            contributors.update(
+                set([_['author']['uuid'] for _ in data['values']]))
+            if 'next' in data:
+                get_users(data['next'], contributors)
+            return contributors
+
+        url = prs.format(username='yt_analysis', repo_slug='yt')
+        CONTRIBUTORS = get_users(url)
+        bb.close()
+
+    return uuid in CONTRIBUTORS
+
 
 def _get_local_repo(path):
     repo_path = os.path.join(REPOS_DIR, path)
@@ -161,7 +193,7 @@ def _run_tests_yt(data):
             logging.warn("Failed to submit {}".format(job))
 
 
-def pullrequest_created(data):
+def pullrequest_updated(data):
     if data['repository']['full_name'] == 'yt_analysis/yt':
         _run_tests_yt(data)
     else:
@@ -171,8 +203,14 @@ def pullrequest_created(data):
         _comment_on_pullrequest(user, repo, prno, message)
 
 
-def pullrequest_updated(data):
-    pullrequest_created(data)
+def pullrequest_created(data):
+    global CONTRIBUTORS
+    if data['repository']['full_name'] == 'yt_analysis/yt':
+        user = data['actor']['uuid']
+        if _new_contributor(user):
+            CONTRIBUTORS.add(user)
+            # do something here
+    pullrequest_updated(data)
 
 
 def pullrequest_fulfilled(data):
