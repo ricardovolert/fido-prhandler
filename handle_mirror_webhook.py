@@ -27,7 +27,7 @@ def sync_repos():
     try:
         gh_repo = git.Repo(LOCAL_GH_REPO_PATH)
     except git.exc.NoSuchPathError:
-        gh_repo = git.Repo.init(LOCAL_GH_REPO_PATH)
+        gh_repo = git.Repo.init(LOCAL_GH_REPO_PATH, bare=True)
     finally:
         gh_repo.close()
 
@@ -37,7 +37,7 @@ def sync_repos():
         head = repo.identify(id=True, rev='remote(tip, default)')
         head = head.decode().strip()
         repo.bookmark(b'master', rev=head, force=True)
-        repo.push(LOCAL_GH_REPO_PATH)
+        repo.push(LOCAL_GH_REPO_PATH, bookmark='master')
 
     tmpdir = tempfile.mkdtemp()
     with git.Repo.init(tmpdir, bare=False) as repo:
