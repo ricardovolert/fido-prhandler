@@ -8,7 +8,7 @@ import shutil
 import hglib
 from unidiff import PatchSet
 from requests_oauthlib import OAuth1Session
-from .handle_mirror_webhook import sync_repos
+from handle_mirror_webhook import sync_repos
 
 IRC_TARGET = "irc://chat.freenode.net/#yt"
 HOME_DIR = "/home/fido/fido"
