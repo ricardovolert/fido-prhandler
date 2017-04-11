@@ -8,6 +8,9 @@ import tasks
 
 class PRHandler(tornado.web.RequestHandler):
 
+    def head(self):
+        self.set_status(200)
+
     def get(self):
         response = {'version': '1.0.0',
                     'last_build':  date.today().isoformat()}
