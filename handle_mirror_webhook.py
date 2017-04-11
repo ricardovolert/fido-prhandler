@@ -2,6 +2,8 @@ import git
 import hglib
 import logging
 import os
+import tempfile
+import shutil
 from tornado import gen
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler, Application
@@ -24,20 +26,26 @@ def sync_repos():
 
     try:
         gh_repo = git.Repo(LOCAL_GH_REPO_PATH)
-        origin = gh_repo.remote('origin')
     except git.exc.NoSuchPathError:
         gh_repo = git.Repo.init(LOCAL_GH_REPO_PATH)
-        origin = gh_repo.create_remote('origin', GH_REPO)
-    origin.pull('master')
-    gh_repo.close()
+    finally:
+        gh_repo.close()
 
     with hglib.open(LOCAL_HG_REPO_PATH, configs=configs) as repo:
         repo.pull(HG_REPO)
+        repo.update('yt', check=True)
+        head = repo.identify(id=True, rev='remote(tip, default)')
+        head = head.decode().strip()
+        repo.bookmark(b'master', rev=head, force=True)
         repo.push(LOCAL_GH_REPO_PATH)
 
-    with git.Repo(LOCAL_GH_REPO_PATH) as repo:
-        origin = repo.remote('origin')
-        origin.push('master')
+    tmpdir = tempfile.mkdtemp()
+    with git.Repo.init(tmpdir, bare=False) as repo:
+        origin = repo.create_remote('origin', LOCAL_GH_REPO_PATH)
+        upstream = repo.create_remote('upstream', GH_REPO)
+        origin.pull('master')
+        upstream.push('master')
+    shutil.rmtree(tmpdir)
 
 
 class MainHandler(RequestHandler):
