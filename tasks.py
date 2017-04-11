@@ -8,6 +8,7 @@ import shutil
 import hglib
 from unidiff import PatchSet
 from requests_oauthlib import OAuth1Session
+from .handle_mirror_webhook import sync_repos
 
 IRC_TARGET = "irc://chat.freenode.net/#yt"
 HOME_DIR = "/home/fido/fido"
@@ -220,3 +221,8 @@ def pullrequest_fulfilled(data):
         r = requests.post(_jenkins_hook(job), data=payload)
         if r.status_code != 200:
             logging.warn("Failed to submit {}".format(job))
+
+
+def repo_push(data):
+    if data['repository']['full_name'] == 'yt_analysis/yt':
+        sync_repos()
