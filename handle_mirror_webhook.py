@@ -26,7 +26,7 @@ def sync_repos():
 
     try:
         gh_repo = git.Repo(LOCAL_GH_REPO_PATH)
-    except git.exc.NoSuchPathError:
+    except (git.exc.NoSuchPathError, git.exc.InvalidGitRepositoryError):
         gh_repo = git.Repo.init(LOCAL_GH_REPO_PATH, bare=True)
     finally:
         gh_repo.close()
