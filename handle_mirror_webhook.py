@@ -54,11 +54,18 @@ def sync_repos():
             print('pushing to %s on branch %s' % (
                 LOCAL_GIT_REPO_PATH, git_branch))
             repo.push(LOCAL_GIT_REPO_PATH, bookmark=git_branch)
+        # ensure tags are pushed
+        print('pushing to %s' % LOCAL_GIT_REPO_PATH)
+        repo.push(LOCAL_GIT_REPO_PATH)
 
     with git.Repo(LOCAL_GIT_REPO_PATH) as repo:
-        print('pushing to %s from %s' % (GH_REPO, LOCAL_GIT_REPO_PATH))
-        repo.remotes.origin.push(all=True)
+        for git_branch in GIT_BRANCH_MAP.values():
+            print('pushing to %s from %s on branch %s' % (
+                GH_REPO, LOCAL_GIT_REPO_PATH, git_branch))
+            repo.remotes.origin.push(git_branch)
+        print('pushing tags to %s from %s' % (GH_REPO, LOCAL_GIT_REPO_PATH))
         repo.remotes.origin.push(tags=True)
+    print('Done!')
 
 
 class MainHandler(RequestHandler):
