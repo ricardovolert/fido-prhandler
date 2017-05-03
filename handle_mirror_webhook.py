@@ -23,7 +23,7 @@ def sync_repos():
     try:
         gh_repo = git.Repo(LOCAL_GIT_REPO_PATH)
     except (git.exc.NoSuchPathError, git.exc.InvalidGitRepositoryError):
-        print('initializing %s' % LOCAL_GIT_REPO_PATH)
+        logging.info('initializing %s' % LOCAL_GIT_REPO_PATH)
         gh_repo = git.Repo.init(LOCAL_GIT_REPO_PATH)
         gh_repo.create_remote('origin', GH_REPO)
     finally:
@@ -34,29 +34,29 @@ def sync_repos():
         repo = hglib.open(LOCAL_HG_REPO_PATH, configs=configs)
         repo.close()
     except hglib.error.ServerError:
-        print('cloning %s to %s' % (HG_REPO, LOCAL_HG_REPO_PATH))
+        logging.info('cloning %s to %s' % (HG_REPO, LOCAL_HG_REPO_PATH))
         hglib.clone(source=HG_REPO, dest=LOCAL_HG_REPO_PATH)
         # need to do this to ensure the correct hashes in the
         # converted git repo since two-way conversion is lossy see
         # e.g. https://groups.google.com/forum/#!topic/hg-git/1r1LBrqLeXc
         with hglib.open(LOCAL_HG_REPO_PATH, configs=configs) as repo:
-            print('pushing %s to %s' %
-                  (LOCAL_HG_REPO_PATH, LOCAL_GIT_REPO_PATH))
+            logging.info('pushing %s to %s' %
+                         (LOCAL_HG_REPO_PATH, LOCAL_GIT_REPO_PATH))
             repo.push(LOCAL_GIT_REPO_PATH)
 
     with git.Repo(LOCAL_GIT_REPO_PATH) as repo:
-        print('pull from %s on branch master' % GH_REPO)
+        logging.info('pull from %s on branch master' % GH_REPO)
         repo.remotes.origin.pull('master')
 
     with hglib.open(LOCAL_HG_REPO_PATH, configs=configs) as repo:
-        print('pull from %s to %s on branch master' %
-              (LOCAL_GIT_REPO_PATH, LOCAL_HG_REPO_PATH))
+        logging.info('pull from %s to %s on branch master' %
+                     (LOCAL_GIT_REPO_PATH, LOCAL_HG_REPO_PATH))
         repo.pull(LOCAL_GIT_REPO_PATH)
         repo.update('master', check=True)
-        print('push from %s to %s on bookmark master' %
-              (LOCAL_HG_REPO_PATH, HG_REPO))
+        logging.info('push from %s to %s on bookmark master' %
+                     (LOCAL_HG_REPO_PATH, HG_REPO))
         # repo.push(HG_REPO, bookmark='master')
-    print('Done!')
+    logging.info('Done!')
 
 
 class MainHandler(RequestHandler):
