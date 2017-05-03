@@ -86,7 +86,7 @@ class MainHandler(RequestHandler):
             raise HTTPError(501, 'Only SHA1 is supported')
 
         # HMAC requires the key to be bytes, but data is string
-        mac = hmac.new(str(GH_SECRET), msg=self.request.data,
+        mac = hmac.new(str(GH_SECRET), msg=self.request.body.decode('utf8'),
                        digestmod=hashlib.sha1)
         if not hmac.compare_digest(str(mac.hexdigest()), str(signature)):
             raise HTTPError(403, 'Wrong signature')
