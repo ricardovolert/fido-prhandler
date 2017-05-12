@@ -55,7 +55,7 @@ def sync_repos():
         repo.update('master', check=True)
         logging.info('push from %s to %s on bookmark master' %
                      (LOCAL_HG_REPO_PATH, HG_REPO))
-        repo.push(HG_REPO, bookmark='master')
+        repo.push(HG_REPO, bookmark='master', force=True)
     logging.info('Done!')
 
 
